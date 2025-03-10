@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      #groupSize {
+        width: 30px;
+      }
+    </style>
+    <title>Temple Appointments</title>
+  </head>
+  <body>
+    <input type="date" name="startDate" id="startDate" />
+    <input type="date" name="endDate" id="endDate" />
+    <br />
+    <br />
+    <input type="time" name="startTime" id="startTime" />
+    <input type="time" name="endTime" id="endTime" />
+    <input type="number" name="groupSize" id="groupSize" />
+    <br />
+    <p>JSESSIONID</p>
+    <input type="text" name="jsessionid" id="jsessionid" />
+    <p>__VCAP_ID__</p>
+    <input type="text" name="vcapid" id="vcapid" />
+    <hr />
+    <select name="temple" id="temple"></select>
+
+    <button id="submit">Submit</button>
+
+    <script>
+      const submitBtnElm = document.querySelector("#submit");
+      const startDateElm = document.querySelector("#startDate");
+      const endDateElm = document.querySelector("#endDate");
+      const startTimeElm = document.querySelector("#startTime");
+      const endTimeElm = document.querySelector("#endTime");
+      const groupSizeElm = document.querySelector("#groupSize");
+      const jsessionidElm = document.querySelector("#jsessionid");
+      const vcapidElm = document.querySelector("#vcapid");
+      const templeElm = document.querySelector("#temple");
+
+      const templeIDs = { layton: 4108674, bountiful: 790370 };
+
+      Object.entries(templeIDs).forEach(([temple, id]) => {
+        const optionElm = document.createElement("option");
+        optionElm.value = id;
+        optionElm.text = temple;
+        templeElm.appendChild(optionElm);
+      });
+
+      submitBtnElm.addEventListener("click", () => {
+        const startDate = new Date(startDateElm.value);
+        const endDate = new Date(endDateElm.value);
+        const startTime = parseInt(startTimeElm.value.replace(":", ""));
+        const endTime = parseInt(endTimeElm.value.replace(":", ""));
+        const groupSize = parseInt(groupSizeElm.value);
+        const jsessionid = jsessionidElm.value;
+        const vcapid = vcapidElm.value;
+        const templeID = parseInt(templeElm.value);
+
+        const startMonth = startDate.getMonth();
+        const endMonth =
+          endDate.getMonth() +
+          12 * (endDate.getFullYear() - startDate.getFullYear());
+
+        const months = [];
+        for (let i = startMonth; i <= endMonth; i++) {
+          let year = startDate.getFullYear() + Math.floor(i / 12);
+          let month = i % 12;
+
+          months.push({ year, month });
+        }
+
+        // Send Request
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        const raw = JSON.stringify({
+          startDate,
+          endDate,
+          startTime,
+          endTime,
+          groupSize,
+          months,
+          jsessionid,
+          vcapid,
+          templeID,
+        });
+
+        const requestOptions = {
+          method: "POST",
+          headers: myHeaders,
+          body: raw,
+          redirect: "follow",
+        };
+
+        fetch("http://localhost:3000/get-available-sessions", requestOptions)
+          .then((response) => response.json())
+          .then(console.log);
+      });
+    </script>
+  </body>
+</html>
